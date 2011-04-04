@@ -1,0 +1,34 @@
+@prefix bs-work: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-work.ttl#> .
+@prefix bs-location: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-location.ttl#> .
+@prefix bs-student: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-student.ttl#> .
+@prefix bs-event: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-event.ttl#> .
+@prefix p: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> .
+@prefix c: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> .
+@prefix i: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+
+bs-event:BS_1 rdf:type c:Bake_Sale_Event .
+bs-event:BS_1 p:location bs-location:Buffalo_NY .
+bs-event:BS_1 p:seller bs-student:Alice.
+bs-event:BS_1 p:product bs-event:cookie_x .
+
+bs-event:BS_2 rdf:type c:Bake_Sale_Event .
+bs-event:BS_2 p:location bs-location:Albany_NY .
+bs-event:BS_2 p:seller bs-student:Alice.
+bs-event:BS_2 p:product bs-event:cookie_y .
+
+bs-event:BS_3 rdf:type c:Bake_Sale_Event .
+bs-event:BS_3 p:location bs-location:Austin_TX .
+bs-event:BS_3 p:seller bs-student:John.
+bs-event:BS_3 p:product bs-event:cookie_z .
+
+bs-event:cookie_x  rdf:type  c:Chocolate_Cookie .
+
+bs-event:cookie_y  rdf:type  c:Sugar_Cookie .
+
+bs-event:cookie_z  rdf:type  c:Cookie .
+bs-event:cookie_z  p:ingredient  i:chocolatechip .
+

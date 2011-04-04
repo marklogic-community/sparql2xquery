@@ -1,0 +1,29 @@
+@prefix bs-work: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-work.ttl#> .
+@prefix bs-location: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-location.ttl#> .
+@prefix bs-student: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-student.ttl#> .
+@prefix p: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> .
+@prefix c: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+bs-work:Bob rdf:type c:Person .
+bs-work:Bob p:home_city bs-location:Buffalo_NY .
+bs-work:Bob p:supervisor bs-work:Cyndi .
+
+bs-work:Cyndi rdf:type c:Manager .
+
+bs-work:Frank rdf:type c:Person .
+bs-work:Frank p:supervisor bs-work:Cyndi .
+bs-work:Frank p:colleague bs-work:David.
+
+bs-work:David rdf:type c:Manager .
+bs-work:David p:supervisor bs-work:George .
+bs-work:David p:home_city bs-location:Austin_TX .
+bs-work:David p:child bs-work:John.
+
+bs-work:John owl:sameAs bs-student:John .
+
+
+bs-work:George rdf:type c:Manager .

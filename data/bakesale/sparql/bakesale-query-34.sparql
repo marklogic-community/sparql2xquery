@@ -1,0 +1,17 @@
+# bakesale-query-34: list persons who are socially related to bake sale sellers 
+#                    and show which source suggested such relation
+ 
+prefix c: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> 
+prefix p: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> 
+prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
+select distinct ?g ?person ?p ?seller 
+where {  
+  ?person a c:Person .  
+  ?seller a c:Person .  
+  ?person p:social_relation ?seller. 
+  ?event a c:Bake_Sale_Event . 
+  ?event p:seller ?seller . 
+  ?event p:product [a c:Cookie] . 
+  ?p rdfs:subPropertyOf  p:social_relation . 
+  GRAPH ?g  { {?person ?p ?seller .} UNION {?seller ?p ?person}  } 
+}

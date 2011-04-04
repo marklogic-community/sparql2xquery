@@ -1,0 +1,10 @@
+# bakesale-query-32: list all employment relations and show the actual relation
+ 
+PREFIX c: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> 
+PREFIX p: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> 
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
+SELECT ?s ?p ?o 
+WHERE { 
+  ?s ?p  ?o. 
+  ?p rdfs:subPropertyOf p:employment_relation . 
+}

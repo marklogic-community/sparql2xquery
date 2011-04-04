@@ -1,0 +1,39 @@
+@prefix bs-location: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-location.ttl#> .
+@prefix p: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> .
+@prefix c: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+
+
+bs-location:Buffalo_NY  rdf:type c:Location .
+bs-location:Buffalo_NY  geo:lat 42.93 .
+bs-location:Buffalo_NY  geo:long -78.73 .
+bs-location:Buffalo_NY p:location bs-location:New_York_State .
+bs-location:Buffalo_NY rdfs:label "Buffalo, NY" .
+
+bs-location:Albany_NY  rdf:type c:Location .
+bs-location:Albany_NY  geo:lat 42.75 .
+bs-location:Albany_NY  geo:long -73.80 .
+bs-location:Albany_NY p:location bs-location:New_York_State .
+bs-location:Albany_NY rdfs:label "Albany, NY" .
+
+bs-location:Austin_TX  rdf:type c:Location .
+bs-location:Austin_TX  geo:lat 30.27 .
+bs-location:Austin_TX  geo:long -97.74 .
+bs-location:Austin_TX  p:location bs-location:Texas .
+bs-location:Austin_TX rdfs:label "Austin, TX" .
+
+bs-location:JFK_Airport  rdf:type c:Location .
+bs-location:JFK_Airport  geo:lat 40.65.
+bs-location:JFK_Airport  geo:long 73.78 .
+bs-location:JFK_Airport  p:location bs-location:New_York_State .
+bs-location:JFK_Airport rdfs:label "John F. Kennedy International Airport" .
+
+
+bs-location:New_York_State  rdf:type c:State .
+bs-location:New_York_State rdfs:label "New York" .
+
+bs-location:Texas  rdf:type c:State .
+bs-location:Texas rdfs:label "Texas" .

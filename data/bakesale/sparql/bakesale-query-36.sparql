@@ -1,0 +1,18 @@
+# bakesale-query-36: list any two-ep relations between 
+
+PREFIX c: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> 
+PREFIX  p: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> 
+PREFIX  i: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> 
+PREFIX  bs-location: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-location.ttl#> 
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
+PREFIX  owl: <http://www.w3.org/2002/07/owl#> 
+SELECT ?person ?p1 ?o ?p2 ?manager  
+WHERE { 
+  ?person a c:Person. 
+  ?manager a c:Manager. 
+  ?person ?p1 ?o . 
+  ?o ?p2 ?manager . 
+  FILTER (   ?person != ?o 
+          && ?person != ?manager 
+          && ?manager != ?o ) 
+} 

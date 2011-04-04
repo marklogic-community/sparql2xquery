@@ -1,0 +1,88 @@
+@prefix p: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> .
+@prefix c: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> .
+@prefix i: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+c:Thing rdf:type owl:Class.
+
+c:Event rdf:type owl:Class.
+c:Event rdfs:subClassOf c:Thing.
+
+c:Person rdf:type owl:Class.
+c:Person rdfs:subClassOf c:Thing.
+
+c:Location rdf:type owl:Class.
+c:Location rdfs:subClassOf c:Thing.
+
+c:State rdf:type owl:Class.
+c:State rdfs:subClassOf c:Location.
+
+c:Bake_Sale_Event rdf:type owl:Class.
+c:Bake_Sale_Event rdfs:subClassOf c:Event.
+
+c:Manager rdf:type owl:Class.
+c:Manager rdfs:subClassOf c:Person.
+
+c:Student rdf:type owl:Class.
+c:Student rdfs:subClassOf c:Person.
+
+c:Graduate_Student rdf:type owl:Class.
+c:Graduate_Student rdfs:subClassOf c:Student.
+
+c:Undergraduate_Student rdf:type owl:Class.
+c:Undergraduate_Student rdfs:subClassOf c:Student.
+
+c:PhD_Student rdf:type owl:Class.
+c:PhD_Student rdfs:subClassOf c:Graduate_Student.
+
+
+c:Cookie rdf:type owl:Class.
+c:Cookie rdfs:subClassOf c:Thing.
+
+c:Chocolate_Cookie rdf:type owl:Class.
+c:Chocolate_Cookie rdfs:subClassOf c:Cookie.
+c:Chocolate_Cookie rdfs:subClassOf c:restriction1 .
+
+c:restriction1
+	a owl:Restriction; 
+	owl:onProperty p:ingredient; 
+	owl:hasValue i:chocolatechip  .
+
+i:chocolatechip rdf:type  c:Thing .
+
+c:Sugar_Cookie rdf:type owl:Class.
+c:Sugar_Cookie rdfs:subClassOf c:Cookie.
+
+p:social_relation rdf:type owl:ObjectProperty . 
+
+p:relative rdf:type owl:SymmetricProperty . 
+p:relative rdfs:subPropertyOf p:social_relation . 
+
+p:employment_relation rdf:type owl:SymmetricProperty . 
+p:employment_relation rdfs:subPropertyOf p:social_relation . 
+
+p:parent rdf:type owl:ObjectProperty . 
+p:parent rdfs:subPropertyOf p:relative . 
+
+p:child rdf:type owl:ObjectProperty . 
+p:child rdfs:subPropertyOf p:relative . 
+p:child owl:inverseOf p:parent . 
+
+p:supervisor rdf:type owl:ObjectProperty . 
+p:supervisor rdfs:subPropertyOf p:colleague . 
+
+p:colleague rdf:type owl:SymmetricProperty . 
+p:colleague rdfs:subPropertyOf p:employment_relation . 
+
+p:ingredient rdf:type owl:ObjectProperty . 
+p:product rdf:type owl:ObjectProperty . 
+p:seller rdf:type owl:ObjectProperty . 
+
+p:home_city rdf:type owl:ObjectProperty . 
+p:home_city rdfs:subPropertyOf p:location . 
+
+p:location rdf:type owl:TransitiveProperty . 
+

@@ -1,0 +1,6 @@
+# bakesale-query-31:  list all instance of Person (including direct instances and inferred instances). 
+
+PREFIX c: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> 
+SELECT ?s ?type 
+WHERE { ?s a  c:Person . } 
+ORDER BY ?s 

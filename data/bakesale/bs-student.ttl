@@ -1,0 +1,18 @@
+@prefix bs-work: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-work.ttl#> .
+@prefix bs-location: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-location.ttl#> .
+@prefix bs-student: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-student.ttl#> .
+@prefix p: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> .
+@prefix c: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+bs-student:Alice rdf:type c:Undergraduate_Student .
+bs-student:Alice p:relative bs-student:John .
+bs-student:Alice p:parent bs-work:Bob .
+
+
+bs-student:John rdf:type c:PhD_Student .
+
+bs-student:Kevin rdf:type c:Graduate_Student .
+bs-student:Kevin p:relative bs-student:John .
