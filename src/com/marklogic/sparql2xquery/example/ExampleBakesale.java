@@ -1,6 +1,8 @@
 package com.marklogic.sparql2xquery.example;
 
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
@@ -12,6 +14,8 @@ import com.hp.hpl.jena.query.DatasetFactory;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.marklogic.sparql2xquery.translator.S2XTranslator;
+import com.marklogic.xcc.exceptions.RequestException;
+import com.marklogic.xcc.exceptions.XccConfigException;
 
 import sw4j.rdf.load.RDFSYNTAX;
 import sw4j.rdf.pellet.ToolPellet;
@@ -46,7 +50,7 @@ public class ExampleBakesale {
     	executeSparqlQuery();
     	
     	//execute translated Xquery against triple store and display results
-    	//TODO
+    	executeXquery();
     	
     	printDebubInfo();
     }
@@ -66,9 +70,13 @@ public class ExampleBakesale {
 
     		//ToolJena.printModel(m);
     		if (null!=m_map_query_sparql_result){
-    			String szResults = m_map_query_sparql_result.get(szQuery).toString();
-    			
-        		System.out.println(String.format("[sparql results: %d]", countResults(szResults)));
+    			String szResults_sparql = m_map_query_sparql_result.get(szQuery).toString();    			
+        		System.out.println(String.format("[sparql results: %d]", countResults(szResults_sparql)));
+        		
+    			String szResults_xquery = this.m_map_query_xquery_result.get(szQuery);
+    			if (null!=szResults_xquery){
+    				System.out.println(String.format("[xquery results: %d]", countResults(szResults_xquery)));
+    			}
     		}
 
     		System.out.println();
@@ -184,6 +192,9 @@ public class ExampleBakesale {
     		String [] querynames = new String[]{
     			"bakesale-query-31.sparql",	
     			"bakesale-query-32.sparql",	
+    			"bakesale-query-33.sparql",	
+    			"bakesale-query-34.sparql",	
+    			"bakesale-query-36.sparql",	
     		};
     		
     		for (String szQueryName: querynames){
@@ -250,6 +261,43 @@ public class ExampleBakesale {
     	return m_map_query_sparql_result;
     }
 
+    Map<String,String> m_map_query_xquery_result = null;
+    private Map<String,String> executeXquery(){
+    	if (null==m_map_query_xquery){
+    		return null;
+    	}
+
+    	if (null==m_map_query_xquery_result){
+    		m_map_query_xquery_result = new TreeMap<String,String>();
+    		    		
+    		for (String szQueryName: m_map_query_xquery.keySet()){
+    			String szQueryXquery = m_map_query_xquery.get(szQueryName);
+    			
+			    	String connectionUri = "xcc://admin:admin@localhost:8006/bakesale-full";
+			    	
+			    	ToolMarkLogicQueryRunner cq;
+					try {
+						cq = new ToolMarkLogicQueryRunner(new URI(connectionUri));
+				    	String results = cq.executeToSingleString(szQueryXquery,"\n");
+						
+				    	m_map_query_xquery_result.put(szQueryName,results);
+						
+					} catch (XccConfigException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (URISyntaxException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (RequestException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+    		}
+    	}
+    
+    	return m_map_query_xquery_result;
+    }
+     
     private int countResults(String results){
     	Pattern pattern = Pattern.compile("<result>");
     	Matcher matcher = pattern.matcher(results);
