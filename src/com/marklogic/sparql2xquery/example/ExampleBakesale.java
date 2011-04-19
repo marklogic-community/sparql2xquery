@@ -23,7 +23,11 @@ import sw4j.rdf.util.AgentSparql;
 import sw4j.util.Sw4jException;
 
 public class ExampleBakesale {
-
+	/*********************************************
+	 * config
+	 */
+    //String connectionUri = "xcc://admin:admin@localhost:8006/bakesale-full";
+	String connectionUri = "xcc://admin:admin@ec2-184-73-4-47.compute-1.amazonaws.com:8005/bakesale";
 		
     public static void main(String [] args){
     	new ExampleBakesale().run();
@@ -175,6 +179,24 @@ public class ExampleBakesale {
 	    		
 	    		String szTextInsert = S2XTranslator.translateRdfDataToMarkLogicInsert(m, szNamedGraph);
 	    		m_map_url_insert.put(szNamedGraph, szTextInsert);
+	    		
+	    		//insert
+		    	ToolMarkLogicQueryRunner cq;
+				try {
+					cq = new ToolMarkLogicQueryRunner(new URI(connectionUri));
+			    	cq.executeToSingleString(szTextInsert,"\n");
+										
+				} catch (XccConfigException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (URISyntaxException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (RequestException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+	    		
 	    	}
     	}
     	return m_map_url_insert;
@@ -273,8 +295,7 @@ public class ExampleBakesale {
     		for (String szQueryName: m_map_query_xquery.keySet()){
     			String szQueryXquery = m_map_query_xquery.get(szQueryName);
     			
-			    	String connectionUri = "xcc://admin:admin@localhost:8006/bakesale-full";
-			    	
+
 			    	ToolMarkLogicQueryRunner cq;
 					try {
 						cq = new ToolMarkLogicQueryRunner(new URI(connectionUri));

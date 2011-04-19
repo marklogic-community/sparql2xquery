@@ -1,32 +1,28 @@
 # bakesale-query-33: list student and manager pairs, each of which is connected by no more than three hops social relation
 
-PREFIX c: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> 
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
-SELECT  distinct ?student ?manager ?o1 ?o2 
-WHERE { 
-  ?student    a c:Student . 
-  FILTER (?student != ?manager ) 
-  { 
-    { 
-      ?student   c:social_relation ?manager  . 
-    } 
+PREFIX c: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT  distinct ?student ?manager ?o1 ?o2
+WHERE {
+  ?student    a c:Student .
+  ?manager a c:Manager.
+  filter (?student != ?manager )
+   {
+      {  ?student   c:social_relation ?manager  .
+              }
     UNION  
-    { 
-       ?student  c:social_relation ?o1. 
-       ?o1 c:social_relation ?manager . 
-       FILTER (?student != ?o1 && ?manager != ?o1 ) 
-    } 
-    UNION 
-    {   
-    	?student  c:social_relation ?o1. 
-        ?o1 c:social_relation  ?o2.  
-        ?o2 c:social_relation ?manager .  
-        FILTER (  
-        	   ?student != ?o1  && ?manager != ?o1  
-            && ?student != ?o2  && ?manager != ?o2  
-            && ?o1 != ?o2 ) 
-    } 
-  } 
-  ?manager a c:Manager. 
-} 
+              {   ?student  c:social_relation ?o1.   
+                  ?o1 c:social_relation ?manager .
+                  filter (?student != ?o1 && ?manager != ?o1 )
+               }
+    UNION
+               {  ?student  c:social_relation ?o1.   
+                  ?o1 c:social_relation  ?o2.
+                  ?o2 c:social_relation ?manager .  
+                   filter ( ?student != ?o1  && ?manager != ?o1
+                                && ?student != ?o2  && ?manager != ?o2
+                                && ?o1 != ?o2 )
+                }
+   }
+}
 ORDER BY ?o2  ?o1

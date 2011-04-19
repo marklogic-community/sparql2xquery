@@ -99,6 +99,7 @@ public class S2XTranslator {
         	printQueryInfo(query);
         }
         
+        
         //Translate SPARQL Query
     	S2XElementVisitor translator = new com.marklogic.sparql2xquery.translator.v4.S2XElementVisitor();
     	translator.debug=false;
