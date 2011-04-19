@@ -1,1 +1,1 @@
-sparql2xquery yah!
+sparql2xquery woohoo!
