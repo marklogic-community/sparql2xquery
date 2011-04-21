@@ -40,6 +40,7 @@ public class S2XQueryBuilder {
 	//working memory
 	DataPVHMap<HashSet<Node>, S2XQuadPath > m_grouped_bgps = new DataPVHMap<HashSet<Node>, S2XQuadPath >();
 	ArrayList<HashSet<Node>> m_sorted_vars = new ArrayList<HashSet<Node>>();
+	HashSet<Node> m_graph_vars = new HashSet<Node>();	// vars used to refer to graph name
 
 	
 	
@@ -89,6 +90,8 @@ public class S2XQueryBuilder {
 
 		groupBgps();
 
+		identifyGraphVars();
+		
 		//init with marklogic import
 		
 		//add FOR clause: append triple pattern (BGPs) here 
@@ -101,23 +104,43 @@ public class S2XQueryBuilder {
 				var_visited.addAll(var_set);
 			}else{
 				//multiple variable
-				ret.add( translateBgpsN(var_set, var_visited));
-				
+				ret.add( translateBgpsN(var_set, var_visited));				
 			}
 		}
+		
+		//add WHERE clause:  append graph var here 
+		boolean isWhereEmpty = true;
+		for (HashSet<Node> var_set: this.m_sorted_vars){
+			for (Node var : var_set){
+				if (this.m_graph_vars.contains(var)){
+					if (!isWhereEmpty){
+						ret.add("and");
+					}else{
+						ret.add("where");
+					}
+					isWhereEmpty =false;
+					
+					// add clause
+					ret.add(renderExpression(String.format("%s !=''", var)));
+				}
+			}			
+		}
+		
 		//add WHERE clause:  append filters here 
 		//TODO, this can be optimized by putting filters ahead
-		boolean isFirstExpr = true;
 		for (Expr e : m_filter_and_varible.keySet()){
-			if (!isFirstExpr){
+			if (!isWhereEmpty){
 				ret.add("and");
 			}else{
 				ret.add("where");
 			}
-			isFirstExpr =false;
+			isWhereEmpty =false;
 			
 			ret.add(renderExpression(e));
 		}
+		
+		
+		
 
 		//add RETURN clause:
 		List<String> vars_ret= new ArrayList<String>();
@@ -139,8 +162,12 @@ public class S2XQueryBuilder {
 	
 
 	private String renderExpression(Expr e){
+		return renderExpression(e.toString());
+	}
+
+	private String renderExpression(String e){
 		String ret = "";
-		ret = e.toString();
+		ret = e;
 		ret = ret.replaceAll("\\?\\?","\\$bnode_");
 		ret = ret.replaceAll("\\?","\\$");
 		
@@ -172,6 +199,7 @@ public class S2XQueryBuilder {
 		}
 		ret +=String.format("for %s in %s %s", t_name, pattern, sub_queries );
 
+		var_visited.addAll(var_set);
 		return ret;
 	}	
 	
@@ -275,8 +303,20 @@ public class S2XQueryBuilder {
 
 		return ret;
 	}				
+	
+	private void identifyGraphVars(){
+		for (S2XQuadPath qp: m_data_bgps_and){
+			for (Node var: qp.listVariables()){
+				if (var.equals(qp.getNamedGraph())){
+					this.m_graph_vars.add(var);
+				}
+			}
+		}
+	}
+	
 	/**
 	 * sort variables by their restrictions
+	 * identify vars related to graph
 	 * 
 	 * @return
 	 */

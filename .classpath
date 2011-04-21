@@ -22,8 +22,6 @@
 	<classpathentry kind="lib" path="lib/pellet2.2.2/jena/icu4j-3.4.4.jar"/>
 	<classpathentry kind="lib" path="lib/pellet2.2.2/jena/iri-0.8-sources.jar"/>
 	<classpathentry kind="lib" path="lib/pellet2.2.2/jena/iri-0.8.jar"/>
-	<classpathentry kind="lib" path="lib/pellet2.2.2/jena/jena-2.6.3-tests.jar"/>
-	<classpathentry kind="lib" path="lib/pellet2.2.2/jena/jena-2.6.3.jar"/>
 	<classpathentry kind="lib" path="lib/pellet2.2.2/jena/junit-4.5.jar"/>
 	<classpathentry kind="lib" path="lib/pellet2.2.2/jena/log4j-1.2.13.jar"/>
 	<classpathentry kind="lib" path="lib/pellet2.2.2/jena/lucene-core-2.3.1.jar"/>
@@ -35,8 +33,10 @@
 	<classpathentry kind="lib" path="lib/pellet2.2.2/jena/xercesImpl-2.7.1.jar"/>
 	<classpathentry kind="lib" path="lib/pellet2.2.2/xsdlib/relaxngDatatype.jar"/>
 	<classpathentry kind="lib" path="lib/pellet2.2.2/xsdlib/xsdlib.jar"/>
-	<classpathentry kind="lib" path="lib/pellet2.2.2/jena/arq-2.8.4.jar"/>
 	<classpathentry kind="lib" path="lib/sw4j-0.6.jar"/>
 	<classpathentry kind="lib" path="lib/marklogic-xcc-4.2.3.jar"/>
+	<classpathentry kind="lib" path="lib/pellet2.2.2/jena/arq-2.8.4.jar"/>
+	<classpathentry kind="lib" path="lib/pellet2.2.2/jena/jena-2.6.3-tests.jar"/>
+	<classpathentry kind="lib" path="lib/pellet2.2.2/jena/jena-2.6.3.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

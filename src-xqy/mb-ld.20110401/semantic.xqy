@@ -1117,3 +1117,112 @@ as xs:string*
 	  )
   
 };
+
+
+(:------------------------------------------------:)
+(:  Forward-Chaining Inference  :)
+(:------------------------------------------------:)
+
+(:  Forward-Chaining Inference -- general :)
+declare function sem:inf-tuple-insert($m as map:map)
+as  empty-sequence()
+{
+  for $key in map:keys($m)
+  return  xdmp:document-insert($key, map:get($m, $key))
+};
+
+declare function sem:inf-owl2rl(){
+  let $m := map:map()
+  let $query := ( 
+   sem:inf-owl2rl-eq-sym($m),
+   sem:inf-owl2rl-eq-trans($m),
+   sem:inf-owl2rl-eq-rep-s($m),
+   ()
+  ) 
+  let $cnt_new := map:count($m)
+  let $cnt_original := count(/t) 
+  let $insert := sem:inf-tuple-insert($m) 
+  let $cnt_inserted := count(/t) - $cnt_original
+  let $ret := (
+   if ($cnt_inserted>0)
+   then text { 'sem:inf-owl2rl -- triples to insert:', $cnt_new, '; triples inserted:', $cnt_inserted }
+   else () )
+  return $ret
+};
+
+
+(:  Forward-Chaining Inference -- rules :)
+
+(: owl2rl | eq-sym | sameAs :)
+declare function sem:inf-owl2rl-eq-sym($m as map:map)
+as  empty-sequence()
+{
+  for  $t_x_y in sem:evT( sem:query-p( 'http://www.w3.org/2002/07/owl#sameAs' ) ) 
+      , $x in $t_x_y/s/text()
+      , $y in $t_x_y/o/text()
+  where ($x != $y)
+  return map:put(
+      $m, 
+      sem:uri-for-tuple($y, 'http://www.w3.org/2002/07/owl#sameAs', $x, ''),   
+      sem:tuple($y, 'http://www.w3.org/2002/07/owl#sameAs', $x, '')) 
+};
+ 
+
+
+(: owl2rl | eq-trans | sameAs :)
+declare function sem:inf-owl2rl-eq-trans($m as map:map)
+as  empty-sequence()
+{
+  for  $t_x_y in sem:evT( sem:query-p( 'http://www.w3.org/2002/07/owl#sameAs' ) ) 
+      , $x in $t_x_y/s/text()
+      , $y in $t_x_y/o/text()
+  for  $z in sem:ev1( $sem:QN-S, (sem:query-s( $y ), sem:query-p( 'http://www.w3.org/2002/07/owl#sameAs' ) )) 
+  where ($x != $y) and ($y != $z)
+  return map:put(
+      $m, 
+      sem:uri-for-tuple($x, 'http://www.w3.org/2002/07/owl#sameAs', $z, ''),   
+      sem:tuple($x, 'http://www.w3.org/2002/07/owl#sameAs', $z, '')) 
+};
+ 
+
+
+(: owl2rl | eq-rep-s | sameAs :)
+declare function sem:inf-owl2rl-eq-rep-s($m as map:map)
+as  empty-sequence()
+{
+  for  $t_x_y in sem:evT( sem:query-p( 'http://www.w3.org/2002/07/owl#sameAs' ) ) 
+      , $x in $t_x_y/s/text()
+      , $y in $t_x_y/o/text()
+  for  $t_p_o in sem:evT( sem:query-s( $x ) ) 
+      , $p in $t_p_o/p/text()
+      , $o in $t_p_o/o/text()
+  where ($x != $y)
+  return map:put(
+      $m, 
+      sem:uri-for-tuple($y, $p, $o, ''),   
+      sem:tuple($y, $p, $o, '')) 
+};
+ 
+
+(:------------------------------------------------:)
+(:  Set operators  :)
+(:------------------------------------------------:)
+declare function sem:setop-distinct-element($seq as element()*, $m as map:map) {
+    for $e in $seq
+    return map:put($m, $e,$e)  
+};
+
+declare function sem:setop-distinct-element($seq as element()*) {
+  let $m := map:map()
+  let $x := sem:setop-distinct-element($seq, $m)
+  for $y in map:keys($m)
+  return map:get($m,$y)
+};
+
+declare function sem:setop-intersect($m as map:map, $seq1 as element()*, $seq2 as element()*) {
+    for $e1 in $seq1
+    for $e2 in $seq2
+    where deep-equal($e1,$e2)
+    return map:put($m, $e1,$e1) 
+};
+ 

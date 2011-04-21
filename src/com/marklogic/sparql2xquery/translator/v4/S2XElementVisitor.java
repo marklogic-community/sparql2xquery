@@ -109,17 +109,8 @@ public class S2XElementVisitor implements S2XAbstractElementVisitor{
 			log(el.getClass());
 			log(el);
 		}
+		//TODO
 		
-		ArrayList<S2XElementVisitor> branch = createBranch(); 
-		for (Element e:  el.getElements()){
-			S2XElementVisitor visitor  = new S2XElementVisitor();
-			// copy context
-			visitor.debug = this.debug;
-			visitor.m_current_graph = this.m_current_graph;
-
-			branch.add(visitor);
-			e.visit(visitor);
-		}
 	}
 
 	@Override
@@ -139,8 +130,37 @@ public class S2XElementVisitor implements S2XAbstractElementVisitor{
 			log(el);			
 		}
 
-		for (Element e :  el.getElements()){
-			e.visit(this);			
+		boolean isUnionGroup =false;
+		List<Element> children = el.getElements();
+		if (children.size()>1){
+			isUnionGroup =true;
+			for (int i=1; i<children.size(); i++){
+				if (!( children.get(i) instanceof ElementUnion)){
+					isUnionGroup =false;
+					break;
+				}
+			}
+		}
+		
+		if (isUnionGroup){
+			ArrayList<S2XElementVisitor> branch = createBranch(); 
+			for (Element e:  el.getElements()){
+				S2XElementVisitor visitor  = new S2XElementVisitor();
+				if (e instanceof ElementUnion)
+					e= ((ElementUnion)e).getElements().get(0);
+				
+				// copy context
+				visitor.debug = this.debug;
+				visitor.m_current_graph = this.m_current_graph;
+
+				branch.add(visitor);
+				e.visit(visitor);
+			}
+
+		}else{
+			for (Element e :  el.getElements()){
+				e.visit(this);
+			}			
 		}
 	}
 
@@ -226,7 +246,6 @@ public class S2XElementVisitor implements S2XAbstractElementVisitor{
 	@Override
 	public String getFinalResults(List<String> resultsVars) {
 		// use recursion to enumerate all possible queries caused by union
-		
 		ArrayList<String> ret = new ArrayList<String>();
 		ArrayList<ArrayList<S2XElementVisitor>> paths = getPaths();
 		
@@ -250,7 +269,9 @@ public class S2XElementVisitor implements S2XAbstractElementVisitor{
 					}
 				}
 			}
-		}else{
+		}
+		
+		{
 			ret.add( String.format("(: #total paths = %d :)",paths.size()));
 			ret.add( "import module namespace sem=\"http://marklogic.com/semantic\" at \"semantic.xqy\";" );
 			ret.add("");
@@ -278,6 +299,11 @@ public class S2XElementVisitor implements S2XAbstractElementVisitor{
 				ret.add("};\n");
 			}			
 
+			// path_id indicate max number of paths
+			{
+				ret.add("sem:setop-distinct-element (");
+			}
+
 			ret.add("(");
 			for (int i=1; i<=path_id; i++){
 				String szFunctionName = String.format("local:uf_%d",i);
@@ -287,6 +313,10 @@ public class S2XElementVisitor implements S2XAbstractElementVisitor{
 				ret.add(szFunctionName+"()");
 			}
 			ret.add(")");
+
+			{
+				ret.add(")");
+			}
 			
 		}
 		
