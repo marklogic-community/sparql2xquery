@@ -1,5 +1,7 @@
 # bakesale-query-34: list persons who are socially related to bake sale sellers 
 #                    and show which source suggested such relation
+#					 TEST: class taxonomy, property taxonomy, property inference
+#					 TEST: sparql GRAPH (for provenance tracking. inferred triple are put into default graph)
  
 PREFIX c: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> 
 PREFIX p: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> 
