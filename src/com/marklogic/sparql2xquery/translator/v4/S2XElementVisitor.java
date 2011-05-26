@@ -32,6 +32,7 @@ import sw4j.util.DataPVHMap;
 
 public class S2XElementVisitor implements S2XAbstractElementVisitor{
 	public boolean debug = true;
+	public final static String VERSION= "revision 2011-05-26";
 
 	private void log(Object obj){
 		Logger.getLogger(this.getClass()).info(obj);
@@ -272,6 +273,7 @@ public class S2XElementVisitor implements S2XAbstractElementVisitor{
 		}
 		
 		{
+			ret.add( String.format("(: #sparql2xquery translator version: %s :)", VERSION));
 			ret.add( String.format("(: #total paths = %d :)",paths.size()));
 			ret.add( "import module namespace sem=\"http://marklogic.com/semantic\" at \"semantic.xqy\";" );
 			ret.add("");

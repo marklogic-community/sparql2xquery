@@ -24,7 +24,7 @@ public class S2XQueryBuilder {
 	boolean debug=false;
 	boolean bInf_sub_c_p= true; //true;
 	boolean bInf_inv=false; //true;
-
+	
 	private void log(Object obj){
 		Logger.getLogger(this.getClass()).info(obj);
 	}

@@ -166,14 +166,21 @@ public class S2XTranslator {
 		if (m.listStatements().hasNext()){
 			out.println("()");
 		}
+
+		if (debug){
+			log("------translated XQUEY query---------");
+			log(sw.toString());
+		}
 		return sw.toString();		
 
 	}
 
 	public static String translateSparqlQuery(String szSparql){
-		log("------original SPARQL query---------");
-		log(szSparql);
-    	
+		if (debug){
+			log("------original SPARQL query---------");
+			log(szSparql);
+		}
+		
         // Parse Query
         Query query = QueryFactory.create(szSparql, Syntax.syntaxSPARQL_11) ;
         if (debug){
