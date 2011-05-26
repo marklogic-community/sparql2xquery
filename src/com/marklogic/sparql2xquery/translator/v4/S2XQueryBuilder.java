@@ -148,11 +148,18 @@ public class S2XQueryBuilder {
 		vars_ret.retainAll(m_vars);
 		
 		ret.add("return");
-		ret.add("<result>");
+		ret.add("element result {");
+		boolean hasComma=false ;
 		for (String var: vars_ret){
-			ret.add(String.format("<binding name=\"%s\">{$%s}</binding>", var, var));			
+			String temp = String.format("element binding { attribute name {\"%s\"}, $%s } ", var, var);
+			if (hasComma)
+				temp = "," + temp;
+			else
+				hasComma = true;
+			ret.add( temp );
+			
 		}
-		ret.add("</result>");
+		ret.add("}");
 		
 		if (debug)
 			log("#var="+var_visited.size()+ ", #bgps="+cnt_bgp+ ", #filters="+m_filter_and_varible.keySet().size());
