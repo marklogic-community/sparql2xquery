@@ -1,4 +1,6 @@
-# bakesale-query-36: list any two-ep relations between 
+# bakesale-query-36: list any two-hop (any kind) relations between 
+#					 TEST: class taxonomy, property taxonomy, property inference
+#					 TEST: sameAs inference
 
 PREFIX c: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> 
 PREFIX  p: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> 

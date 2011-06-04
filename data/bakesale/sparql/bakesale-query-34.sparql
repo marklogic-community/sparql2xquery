@@ -1,17 +1,19 @@
 # bakesale-query-34: list persons who are socially related to bake sale sellers 
 #                    and show which source suggested such relation
+#					 TEST: class taxonomy, property taxonomy, property inference
+#					 TEST: sparql GRAPH (for provenance tracking. inferred triple are put into default graph)
  
-prefix c: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> 
-prefix p: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> 
-prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
-select distinct ?g ?person ?p ?seller 
-where {  
-  ?person a c:Person .  
-  ?seller a c:Person .  
-  ?person p:social_relation ?seller. 
-  ?event a c:Bake_Sale_Event . 
-  ?event p:seller ?seller . 
-  ?event p:product [a c:Cookie] . 
-  ?p rdfs:subPropertyOf  p:social_relation . 
-  GRAPH ?g  { {?person ?p ?seller .} UNION {?seller ?p ?person}  } 
+PREFIX c: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> 
+PREFIX p: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> 
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
+SELECT distinct ?g ?person ?p ?seller 
+WHERE {  
+  ?person a c:Person .
+  ?seller a c:Person .
+  ?person p:social_relation ?seller.
+  ?event a c:Bake_Sale_Event .
+  ?event p:seller ?seller .
+  ?event p:product [a c:Cookie] .
+  ?p rdfs:subPropertyOf  p:social_relation .
+  GRAPH ?g  { {?person ?p ?seller .} UNION {?seller ?p ?person}  }
 }

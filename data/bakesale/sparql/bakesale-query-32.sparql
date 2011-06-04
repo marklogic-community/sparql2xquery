@@ -1,4 +1,6 @@
-# bakesale-query-32: list all employment relations and show the actual relation
+# bakesale-query-32: list all pairs of entities connected by employment relations
+#					 TEST: property taxonomy (i.e. rdfs:subPropertyOf)
+#				     TEST: property inference (i.e. owl:SymmetricProperty, owl:inverseOf)
  
 PREFIX c: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> 
 PREFIX p: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#> 

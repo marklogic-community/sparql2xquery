@@ -10,8 +10,8 @@ import com.marklogic.xcc.exceptions.XccConfigException;
 
 public class Test {
     public static void main(String [] args){
-    	//String connectionUri = "xcc://admin:admin@localhost:8005/bakesale";
-    	String connectionUri = "xcc://admin:admin@ec2-184-73-4-47.compute-1.amazonaws.com:8005/bakesale";
+    	String connectionUri = "xcc://admin:admin@localhost:8006/bakesale-test";
+    	//String connectionUri = "xcc://admin:admin@ec2-184-73-4-47.compute-1.amazonaws.com:8005/bakesale";
     	ToolMarkLogicQueryRunner cq;
 		try {
 			cq = new ToolMarkLogicQueryRunner(new URI(connectionUri));

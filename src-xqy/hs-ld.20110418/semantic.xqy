@@ -875,46 +875,84 @@ declare function sem:select(
 
 (: source https://github.com/marklogic/semantic/raw/master/src/xquery/semantic.xqy :)
 
-(: --- enhancement ---  :)
 
-(: shortcut for sem:rq :)
+
+
+(: 
+ : -------------------------------------
+ : PART 2 enhancement
+ : -------------------------------------
+ :)
+ 
+declare variable $sem:P-OWL-INVERSE :=
+'http://www.w3.org/2002/07/owl#inverseOf'
+;
+
+declare variable $sem:C-OWL-TRANSITIVE-PROPERTY :=
+'http://www.w3.org/2002/07/owl#TransitiveProperty'
+;
+ 
+declare variable $sem:C-OWL-SYMMETRIC-PROPERTY :=
+'http://www.w3.org/2002/07/owl#SymmetricProperty'
+;
+
+declare variable $sem:P-OWL-SAMEAS :=
+'http://www.w3.org/2002/07/owl#sameAs'
+;
+
+
+declare variable $sem:P-OWL-HAS-VALUE :=
+'http://www.w3.org/2002/07/owl#hasValue'
+;
+
+
+declare variable $sem:O-OWL-DATATYPE-PROPERTY :=
+'http://www.w3.org/2002/07/owl#DatatypeProperty'
+;
+ 
+
+(: 
+ : -------------------------------------
+ : PART 2.1 wrappers
+ :	- query constructor
+ :	- query evaluation
+ : -------------------------------------
+ :)
+
+(: shortcut for sem:rq, create a query pattern on subject :)
 declare  function sem:query-s(
   $s as xs:string*)
- as cts:query?
+ as cts:query
 {
   if (empty($s)) 
   then sem:rq($sem:QN-S, '')
   else sem:rq($sem:QN-S, $s)
 };
 
-(: shortcut for sem:rq :)
+(: shortcut for sem:rq, create a query pattern on object :)
 declare  function sem:query-o(
   $o as xs:string*)
- as cts:query?
+ as cts:query
 {
   if (empty($o)) 
   then sem:rq($sem:QN-O, '')
   else sem:rq($sem:QN-O, $o)
 };
-(: with sub-property inference :)
-(:  sem:rq($sem:QN-O, sem:rdf-subclasses($o) ) :)
-(:  sem:rq($sem:QN-O, sem:owl-subclasses($o))  :)
 
-
-(: shortcut for sem:pq :)
+(: shortcut for sem:rq, create a query pattern on predicate :)
 declare function sem:query-p(
   $p as xs:string*)
- as cts:query?
+ as cts:query
 {
   if (empty($p)) 
-  then sem:pq('')
-  else sem:pq($p)
+  then sem:rq($sem:QN-P, '')
+  else sem:rq($sem:QN-P, $p)
 };
 
-(: query c :)
+(: shortcut for sem:rq, create a query pattern on context (named graph) :)
 declare function sem:query-c(
   $c as xs:string*)
- as cts:query?
+ as cts:query
 {
   if (empty($c)) 
   then sem:rq($sem:QN-C, '') 
@@ -922,46 +960,7 @@ declare function sem:query-c(
 };
 
 
-
-(: with sub-property inference :)
-(:  sem:pq(sem:list-direct-subproperties($p))  :)
-
-(: compute inverse :)
-declare variable $sem:P-OWL-INVERSE :=
-'http://www.w3.org/2002/07/owl#inverseOf'
-;
-
-declare function sem:owl-inverse(
-  $p as xs:string*)
-as xs:string*
-{
-  if (empty($p)) then () else
-  sem:merge-sequence(
-	sem:subject-for-object-predicate($p, $sem:P-OWL-INVERSE),
-    sem:object-for-subject-predicate($p, $sem:P-OWL-INVERSE)
-  )
-};
-
-(: compute transitive closure :)
-declare function sem:tc-s($seeds as xs:string* , $p as xs:string*)
-   as xs:string* {
-      let $next := sem:object-for-subject-predicate($seeds, $p)
-	  return
-	  if ( $next ) then ($seeds , sem:tc-s($next, $p) )
-	  else ($seeds)
-}; 
-
-(: compute transitive closure :)
-declare function sem:tc-o($seeds as xs:string* , $p as xs:string*)
-   as xs:string* {
-      let $next := sem:subject-for-object-predicate($seeds, $p)
-      return 
-	    if ( $next ) then ($seeds , sem:tc-o($next, $p))
-	    else ($seeds)
-}; 
-
-
-(: evaluate a list of queries :)
+(: evaluate a list of queries, return a list of strings :)
 declare function sem:ev1(
   $qn as xs:QName, 
   $query as cts:query*)
@@ -972,7 +971,7 @@ as xs:string*
 	else sem:ev($qn, cts:and-query( $query) )
 };
 
-(: evaluate a list of queries :)
+(: evaluate a list of queries, return a list of triples :)
 declare function sem:evT(
   $query as cts:query*)
 as element(t)*
@@ -982,7 +981,16 @@ as element(t)*
 	else sem:tuples-for-query(cts:and-query( $query) )
 };
 
-declare function sem:merge-sequence(
+
+
+
+(: 
+ : -------------------------------------
+ : PART 2.2 Set Operations
+ : -------------------------------------
+ :)
+ 
+declare function sem:setop-union(
   $seq1 as item()*,
   $seq2 as item()*)
 as item()*
@@ -994,133 +1002,48 @@ as item()*
   for $y in $seq2
   return ($x, $y)
 };
-
-(: shortcut for sem:relate-join :)
-declare function sem:ev2(
-  $a as xs:QName, 
-  $b as xs:QName,
-  $query as cts:query )
-as element(cts:co-occurrence)*
-{
-  sem:relate-join ( $a, $b, $query)
+ 
+declare function sem:setop-distinct-element($seq as element()*, $m as map:map) {
+    for $e in $seq
+    return map:put($m, $e,$e)  
 };
 
-(: merge bindings with one variable result, zero pre-existing variable :)
-declare function sem:merge_1_0(
-  $bindings as element(binding)*,
-  $data as xs:string*,
-  $co_field1_name as xs:string
- )
-as element(binding)*
- {
-  if (empty($data)) then error((),'empty results')
-  else 
-  if (empty($bindings)) then (
-    for $d in $data
-    return ( element binding 
-      {element {$co_field1_name} {$d} }
-    )
-  )
-  else
-    for $d in $data
-    for $t in $bindings
-    return ( element binding 
-      {$t/*, element {$co_field1_name} {$d} }
-    )
-   
- };
+declare function sem:setop-distinct-element($seq as element()*) {
+  let $m := map:map()
+  let $x := sem:setop-distinct-element($seq, $m)
+  for $y in map:keys($m)
+  return map:get($m,$y)
+};
 
-(: merge bindings with one variable result, one pre-existing variable :)
-declare function sem:merge_1_1(
-  $bindings as element(binding)+,
-  $data as xs:string*,
-  $co_field1_name as xs:string
- )
-as element(binding)*
- {
-  if (empty($data)) then error((),'empty results')
-  else 
-  if (empty($bindings)) then  error((),'empty results')
-  else
-    for $d in $data
-    for $t in $bindings
-    where ($t/node()[name()=$co_field1_name]/string() = $d)
-     return ( element binding 
-      {$t/*}
-    )
- };
+declare function sem:setop-intersect($m as map:map, $seq1 as element()*, $seq2 as element()*) {
+    for $e1 in $seq1
+    for $e2 in $seq2
+    where deep-equal($e1,$e2)
+    return map:put($m, $e1,$e1) 
+};
+ 
 
- 
-(: merge bindings with two variable co-existing result, no pre-existing variable :)
-declare function sem:merge_2_0(
-  $bindings as element(binding)*,
-  $co as element(cts:co-occurrence)*,
-  $co_field1_name as xs:string,
-  $co_field2_name as xs:string
- )
-as element(binding)*
- {
-  if (empty($co)) then  error((),'empty results')
-  else 
-  if (empty($bindings)) then (
-  for $c in $co
-  return ( element binding 
-    {element {$co_field1_name} {$c/cts:value[1]/string()} ,
-    element {$co_field2_name} {$c/cts:value[2]/string()} }
-   )
+
+(: 
+ : -------------------------------------
+ : PART 2.3 dynamic inference
+ : -------------------------------------
+ :)
+
+
+(: list properties which are direct inverse of the input properties :)
+declare function sem:list-direct-owl-inverse(
+  $p as xs:string*)
+as xs:string*
+{
+  if (empty($p)) then () else
+  sem:setop-union(
+	sem:subject-for-object-predicate($p, $sem:P-OWL-INVERSE),
+    sem:object-for-subject-predicate($p, $sem:P-OWL-INVERSE)
   )
-  else
-  for $c in $co
-  for $t in $bindings
-  return ( element binding 
-    {$t/*, element {$co_field1_name} {$c/cts:value[1]/string()} ,
-    element {$co_field2_name} {$c/cts:value[2]/string()} }
-   )
- };
- 
- 
-(: merge bindings with two variable co-existing result, one pre-existing variable :)
- declare function sem:merge_2_1(
-  $bindings as element(binding)*,
-  $co as element(cts:co-occurrence)*,
-  $binding_field_join_name as xs:string,
-  $co_field_join_pos as xs:int,
-  $co_field_value_name as xs:string,
-  $co_field_value_pos as xs:int
-  )
-  as element(binding)*
- {
-  if (empty($co)) then  error((),'empty results')
-  else 
-  for $t in $bindings
-  for $c in $co 
-  where ($t/node()[name()=$binding_field_join_name]/string() = $c/cts:value[$co_field_join_pos]/string())
-  return ( element binding 
-	{$t/*,
-    element {$co_field_value_name} {$c/cts:value[$co_field_value_pos]/string()} }
-   )
- };
- 
-(: merge bindings with two variable co-existing result, two pre-existing variable :)
- declare function sem:merge_2_2(
-  $bindings as element(binding)*,
-  $co as element(cts:co-occurrence)*,
-  $co_field1_name as xs:string,
-  $co_field2_name as xs:string
-  )
-  as element(binding)*
- {
-  if (empty($co)) then  error((),'empty results')
-  else 
-  for $t in $bindings
-  for $c in $co 
-  where (($t/node()[name()=$co_field1_name]/string() = $c/cts:value[1]/string()) and ($t/node()[name()=$co_field2_name]/string() = $c/cts:value[2]/string()))
-  return ( element binding 
-	{$t/*}
-   )
- };
- 
-(: list direct sub-classes :) 
+};
+
+(: list classes which are direct sub-classes of the input classes. Results include the input :) 
  declare function sem:list-direct-subclasses(
   $class as xs:string*)
 as xs:string*
@@ -1136,7 +1059,7 @@ as xs:string*
   )
 };
 
-(: list direct sub-property:) 
+(: list properties which are direct sub-properties of the input properties. Results include the input :) 
 declare function sem:list-direct-subproperties(
   $prop as xs:string*)
 as xs:string*
@@ -1153,63 +1076,526 @@ as xs:string*
 };
 
 
-(: create a quad :) 
-declare function sem:quad(
-  $s as xs:string,
-  $s_type as xs:string,
-  $p as xs:string,
-  $p_type as xs:string,
-  $o as xs:string,
-  $o_type as xs:string,
-  $c as xs:string?)
-as element(t)
+
+
+(: 
+ : -------------------------------------
+ : PART 2.4 forward chaining materialization inference
+ : -------------------------------------
+ :)
+
+ 
+(:  Forward-Chaining Inference -- general :)
+
+(:  insert a couple of documents encoded in map in form of  "document key" => "document content" :)
+declare function sem:inf-tuple-insert($m as map:map)
+as  empty-sequence()
 {
-  element t {
-    element s {
-      attribute h { xdmp:hash64($s) },
-      attribute type { $s_type },
-      $s },
-    element p {
-      attribute h { xdmp:hash64($p) },
-      attribute type { $p_type },
-      $p },
-    element o {
-      attribute h { xdmp:hash64($o) },
-      attribute type { $o_type },
-      $o },
-    if (empty($c)) 
-	then ()
-    else element c {
-      attribute h { xdmp:hash64($c) },
-      attribute type { 'uri' },
-      $c }
-  }
+  for $key in map:keys($m)
+  return  xdmp:document-insert($key, map:get($m, $key))
 };
 
-declare function sem:quad-insert(
-  $s as xs:string,
-  $s_type as xs:string,
-  $p as xs:string,
-  $p_type as xs:string,
-  $o as xs:string,
-  $o_type as xs:string,
-  $c as xs:string?)
+
+(:  Forward-Chaining Inference -- add owl2 ontology :)
+
+declare function sem:inf-owl2-ontology()
+as xs:integer*{
+ (	
+   sem:tuple-insert( 'http://www.w3.org/2002/07/owl#SymmetricProperty' , 'http://www.w3.org/2000/01/rdf-schema#subClassOf' ,  'http://www.w3.org/2002/07/owl#ObjectProperty', 'http://www.w3.org/2002/07/owl' ),
+   sem:tuple-insert( 'http://www.w3.org/2002/07/owl#TransitiveProperty' , 'http://www.w3.org/2000/01/rdf-schema#subClassOf' ,  'http://www.w3.org/2002/07/owl#ObjectProperty', 'http://www.w3.org/2002/07/owl' ),
+   ()
+ )
+};
+
+
+
+(:  Forward-Chaining Inference -- OWL2RL rules http://www.w3.org/TR/owl2-profiles/#OWL_2_RL :)
+
+
+(: owl2rl | eq-sym | sameAs :)
+declare function sem:inf-owl2rl-eq-sym()
+as xs:integer
+{
+  let $m := map:map()
+  let $query := sem:inf-owl2rl-eq-sym($m)
+  let $exec := sem:inf-tuple-insert($m)
+  return map:count($m)
+};
+
+declare private function sem:inf-owl2rl-eq-sym($m as map:map)
+as  empty-sequence()
+{
+  for  $t_x_y in sem:evT( sem:query-p( $sem:P-OWL-SAMEAS ) ) 
+      , $x in $t_x_y/s/text()
+      , $y in $t_x_y/o/text()
+  let $key := sem:uri-for-tuple($y, $sem:P-OWL-SAMEAS, $x, '')
+  where (($x != $y) and (map:count($m) lt 10000) and ( not (fn:doc-available($key)) ) )
+  return map:put(
+      $m, 
+      $key,   
+      sem:tuple($y, $sem:P-OWL-SAMEAS, $x, '')) 
+};
+ 
+
+
+(: owl2rl | eq-trans | sameAs :)
+declare function sem:inf-owl2rl-eq-trans()
+as xs:integer
+{
+  let $m := map:map()
+  let $query := sem:inf-owl2rl-eq-trans($m)
+  let $exec := sem:inf-tuple-insert($m)
+  return map:count($m)
+};
+
+declare private function sem:inf-owl2rl-eq-trans($m as map:map)
 as empty-sequence()
 {
-  xdmp:document-insert(
-    sem:uri-for-tuple($s, $p, $o, $c),
-    sem:quad($s, $s_type, $p, $p_type, $o, $o_type, $c) )
+  for  $t_x_y in sem:evT( sem:query-p( $sem:P-OWL-SAMEAS ) ) 
+      , $x in $t_x_y/s/text()
+      , $y in $t_x_y/o/text()
+  for  $z in sem:ev1( $sem:QN-O, (sem:query-s( $y ), sem:query-p( $sem:P-OWL-SAMEAS ) )) 
+  let $key := sem:uri-for-tuple($x, $sem:P-OWL-SAMEAS, $z, '')
+  where (($x != $y) and ($y != $z) and (map:count($m) lt 10000) and ( not (fn:doc-available($key)) ) ) 
+  return map:put(
+      $m, 
+      $key,   
+      sem:tuple($x, $sem:P-OWL-SAMEAS, $z, '')) 
+};
+ 
+
+
+(: owl2rl | eq-rep-s | sameAs :)
+declare function sem:inf-owl2rl-eq-rep-s()
+as xs:integer
+{
+  let $m := map:map()
+  let $query := sem:inf-owl2rl-eq-rep-s($m)
+  let $exec := sem:inf-tuple-insert($m)
+  return map:count($m)
 };
 
-(: sameAs support  :)
-declare function sem:list-sameas(
-  $list as xs:string*)
-as xs:string*
+declare private function sem:inf-owl2rl-eq-rep-s($m as map:map)
+as  empty-sequence()
 {
-  if (empty($list) ) then () else
-      (
-		sem:subject-for-object-predicate( $list, 'http://www.w3.org/2002/07/owl#sameAs'),
-		sem:object-for-subject-predicate( $list, 'http://www.w3.org/2002/07/owl#sameAs')
-	  )
-  
+  for  $t_x_y in sem:evT( sem:query-p( $sem:P-OWL-SAMEAS ) ) 
+      , $x in $t_x_y/s/text()
+      , $y in $t_x_y/o/text()
+  for  $t_p_o in sem:evT( sem:query-s( $x ) ) 
+      , $p in $t_p_o/p/text()
+      , $o in $t_p_o/o/text()
+  let $key := sem:uri-for-tuple($y, $p, $o, '')
+  where (($x != $y) and (map:count($m) lt 10000) and ( not (fn:doc-available($key)) ) ) 
+  return map:put(
+      $m, 
+      $key,   
+      sem:tuple($y, $p, $o, '')) 
 };
+ 
+ 
+ 
+(: owl2rl | eq-rep-p | sameAs :)
+declare function sem:inf-owl2rl-eq-rep-p()
+as xs:integer
+{
+  let $m := map:map()
+  let $query := sem:inf-owl2rl-eq-rep-p($m)
+  let $exec := sem:inf-tuple-insert($m)
+  return map:count($m)
+};
+
+declare private function sem:inf-owl2rl-eq-rep-p($m as map:map)
+as  empty-sequence()
+{
+  for  $t_x_y in sem:evT( sem:query-p( $sem:P-OWL-SAMEAS ) ) 
+      , $x in $t_x_y/s/text()
+      , $y in $t_x_y/o/text()
+  for  $t_s_o in sem:evT( sem:query-p( $x ) ) 
+      , $s in $t_s_o/s/text()
+      , $o in $t_s_o/o/text()
+  let $key := sem:uri-for-tuple($s, $y, $o, '')
+  where (($x != $y) and (map:count($m) lt 10000) and ( not (fn:doc-available($key)) ) ) 
+  return map:put(
+      $m, 
+      $key,   
+      sem:tuple($s, $y, $o, '')) 
+};
+
+
+
+(: owl2rl | eq-rep-o | sameAs :)
+declare function sem:inf-owl2rl-eq-rep-o()
+as xs:integer
+{
+  let $m := map:map()
+  let $query := sem:inf-owl2rl-eq-rep-o($m)
+  let $exec := sem:inf-tuple-insert($m)
+  return map:count($m)
+};
+
+declare private function sem:inf-owl2rl-eq-rep-o($m as map:map)
+as  empty-sequence()
+{
+  for  $t_x_y in sem:evT( sem:query-p( $sem:P-OWL-SAMEAS ) ) 
+      , $x in $t_x_y/s/text()
+      , $y in $t_x_y/o/text()
+  for  $t_s_p in sem:evT( sem:query-o( $x ) ) 
+      , $s in $t_s_p/s/text()
+      , $p in $t_s_p/p/text()
+  let $key := sem:uri-for-tuple($s, $p, $y, '')
+  where (($x != $y) and (map:count($m) lt 10000) and ( not (fn:doc-available($key)) ) ) 
+  return map:put(
+      $m, 
+      $key,   
+      sem:tuple($s, $p, $y, '')) 
+};
+
+
+
+
+(: owl2rl | prp-symp | SymmetricProperty :)
+declare function sem:inf-owl2rl-prp-symp()
+as xs:integer
+{
+  let $m := map:map()
+  let $query := sem:inf-owl2rl-prp-symp($m)
+  let $exec := sem:inf-tuple-insert($m)
+  return map:count($m)
+};
+
+declare private function sem:inf-owl2rl-prp-symp($m as map:map)
+as  empty-sequence()
+{
+  for  $p in sem:ev1(  $sem:QN-S, (sem:query-p( $sem:P-RDF-TYPE ), sem:query-o( $sem:C-OWL-SYMMETRIC-PROPERTY)) ) 
+  for  $t_x_y in sem:evT( sem:query-p( $p ) ) 
+      , $x in $t_x_y/s/text()
+      , $y in $t_x_y/o/text()
+  let $key := sem:uri-for-tuple($y, $p, $x, '')
+  where ( ($x != $y)  and (map:count($m) lt 10000) and ( not (fn:doc-available($key)) ) )
+  return map:put(
+      $m, 
+      $key,   
+      sem:tuple($y, $p, $x, '')) 
+};
+
+
+
+
+(: owl2rl | prp-trp  | TransitiveProperty :)
+declare function sem:inf-owl2rl-prp-trp()
+as xs:integer
+{
+  let $m := map:map()
+  let $query := sem:inf-owl2rl-prp-trp($m)
+  let $exec := sem:inf-tuple-insert($m)
+  return map:count($m)
+};
+
+declare private function sem:inf-owl2rl-prp-trp($m as map:map)
+as empty-sequence()
+{
+  for  $p in sem:ev1(  $sem:QN-S, (sem:query-p( $sem:P-RDF-TYPE ), sem:query-o( $sem:C-OWL-TRANSITIVE-PROPERTY )) ) 
+  for  $t_x_y in sem:evT( sem:query-p( $p ) ) 
+      , $x in $t_x_y/s/text()
+      , $y in $t_x_y/o/text()
+  for  $z in sem:ev1( $sem:QN-O, (sem:query-s( $y ), sem:query-p( $p ) )) 
+  let $key := sem:uri-for-tuple($x, $p, $z, '')
+  where (($x != $y) and ($y != $z) and (map:count($m) lt 10000) and ( not (fn:doc-available($key)) ) ) 
+  return map:put(
+      $m, 
+      $key,   
+      sem:tuple($x, $p, $z, '')) 
+};
+
+
+(: owl2rl | prp-spo1  | subPropertyOf inference :)
+declare function sem:inf-owl2rl-prp-spo1()
+as xs:integer
+{
+  let $m := map:map()
+  let $query := sem:inf-owl2rl-prp-spo1($m)
+  let $exec := sem:inf-tuple-insert($m)
+  return map:count($m)
+};
+
+declare private function sem:inf-owl2rl-prp-spo1($m as map:map)
+as empty-sequence()
+{
+  for  $t_p1_p2 in sem:evT( sem:query-p( $sem:P-RDF-SUBPROPERTY ) ) 
+      , $p1 in $t_p1_p2/s/text()
+      , $p2 in $t_p1_p2/o/text()
+  for  $t_x_y in sem:evT( sem:query-p( $p1 ) ) 
+      , $x in $t_x_y/s/text()
+      , $y in $t_x_y/o/text()
+  let $key := sem:uri-for-tuple($x, $p2, $y, '')
+  where ( ($p1 != $p2 ) and (map:count($m) lt 10000) and ( not (fn:doc-available($key)) ) ) 
+  return map:put(
+      $m, 
+      $key,   
+      sem:tuple($x, $p2, $y, '')) 
+};
+
+
+ 
+(: owl2rl | prp-inv1  | inverseOf:)
+declare function sem:inf-owl2rl-prp-inv1()
+as xs:integer
+{
+  let $m := map:map()
+  let $query := sem:inf-owl2rl-prp-inv1($m)
+  let $exec := sem:inf-tuple-insert($m)
+  return map:count($m)
+};
+
+declare private function sem:inf-owl2rl-prp-inv1($m as map:map)
+as  empty-sequence()
+{
+  for  $t_x_y in sem:evT( sem:query-p( $sem:P-OWL-INVERSE ) ) 
+      , $x in $t_x_y/s/text()
+      , $y in $t_x_y/o/text()
+  for  $t_s_o in sem:evT( sem:query-p( $x ) ) 
+      , $s in $t_s_o/s/text()
+      , $o in $t_s_o/o/text()
+  let $key := sem:uri-for-tuple($o, $y, $s, '')
+  where ( ($x != $y)  and (map:count($m) lt 10000) and ( not (fn:doc-available($key)) ) )
+  return map:put(
+      $m, 
+      $key,   
+      sem:tuple($o, $y, $s, '')) 
+};
+
+
+
+
+(: owl2rl | prp-inv2  | inverseOf:)
+declare function sem:inf-owl2rl-prp-inv2()
+as xs:integer
+{
+  let $m := map:map()
+  let $query := sem:inf-owl2rl-prp-inv2($m)
+  let $exec := sem:inf-tuple-insert($m)
+  return map:count($m)
+};
+
+declare private function sem:inf-owl2rl-prp-inv2($m as map:map)
+as  empty-sequence()
+{
+  for  $t_x_y in sem:evT( sem:query-p( $sem:P-OWL-INVERSE ) ) 
+      , $x in $t_x_y/s/text()
+      , $y in $t_x_y/o/text()
+  for  $t_s_o in sem:evT( sem:query-p( $y ) ) 
+      , $s in $t_s_o/s/text()
+      , $o in $t_s_o/o/text()
+  let $key := sem:uri-for-tuple($o, $x, $s, '')
+  where ( ($x != $y)  and (map:count($m) lt 10000) and ( not (fn:doc-available($key)) ) )
+  return map:put(
+      $m, 
+      $key,   
+      sem:tuple($o, $x, $s, '')) 
+};
+
+
+(: owl2rl | cls-hv1  | owl:hasValue  :)
+declare function sem:inf-owl2rl-cls-hv1()
+as xs:integer
+{
+  let $m := map:map()
+  let $query := sem:inf-owl2rl-cls-hv1($m)
+  let $exec := sem:inf-tuple-insert($m)
+  return map:count($m)
+};
+
+declare private function sem:inf-owl2rl-cls-hv1($m as map:map)
+as  empty-sequence()
+{
+  for  $t_x_y in sem:evT( sem:query-p( $sem:P-OWL-HAS-VALUE ) ) 
+      , $x in $t_x_y/s/text()
+      , $y in $t_x_y/o/text()
+  for  $p in sem:ev1(  $sem:QN-O, (sem:query-p( $sem:P-OWL-ON-PROPERTY ), sem:query-s( $x )) ) 
+  for  $u in sem:ev1(  $sem:QN-S, (sem:query-p( $sem:P-RDF-TYPE ), sem:query-o( $x )) ) 
+  let $key := sem:uri-for-tuple($u, $p, $y, '')
+  where ( (map:count($m) lt 10000) and ( not (fn:doc-available($key)) ) )
+  return map:put(
+      $m, 
+      $key,   
+      sem:tuple($u, $p, $y, '')) 
+};
+
+
+(: owl2rl | cls-hv2  | owl:hasValue  :)
+declare function sem:inf-owl2rl-cls-hv2()
+as xs:integer
+{
+  let $m := map:map()
+  let $query := sem:inf-owl2rl-cls-hv2($m)
+  let $exec := sem:inf-tuple-insert($m)
+  return map:count($m)
+};
+
+declare private function sem:inf-owl2rl-cls-hv2($m as map:map)
+as  empty-sequence()
+{
+  for  $t_x_y in sem:evT( sem:query-p( $sem:P-OWL-HAS-VALUE ) ) 
+      , $x in $t_x_y/s/text()
+      , $y in $t_x_y/o/text()
+  for  $p in sem:ev1(  $sem:QN-O, (sem:query-p( $sem:P-OWL-ON-PROPERTY ), sem:query-s( $x )) ) 
+  for  $u in sem:ev1(  $sem:QN-S, (sem:query-p( $p ), sem:query-o( $x )) ) 
+  let $key := sem:uri-for-tuple($u, $sem:P-RDF-TYPE, $x, '')
+  where ( (map:count($m) lt 10000) and ( not (fn:doc-available($key)) ) )
+  return map:put(
+      $m, 
+      $key,   
+      sem:tuple($u, $sem:P-RDF-TYPE, $x, '')) 
+};
+
+
+
+(: owl2rl | cax-sco | subClassOf inference :)
+declare function sem:inf-owl2rl-cax-sco()
+as xs:integer
+{
+  let $m := map:map()
+  let $query := sem:inf-owl2rl-cax-sco($m)
+  let $exec := sem:inf-tuple-insert($m)
+  return map:count($m)
+};
+
+declare private function sem:inf-owl2rl-cax-sco($m as map:map)
+as  empty-sequence()
+{
+  for  $t_c1_c2 in sem:evT( sem:query-p( $sem:P-RDF-SUBCLASS ) ) 
+      , $c1 in $t_c1_c2/s/text()
+      , $c2 in $t_c1_c2/o/text()
+  for  $x in sem:ev1( $sem:QN-S, (sem:query-o( $c1 ), sem:query-p( $sem:P-RDF-TYPE ) )) 
+  let $key := sem:uri-for-tuple($x, $sem:P-RDF-TYPE , $c2, '')
+  where ( ($c1 != $c2)  and (map:count($m) lt 10000) and ( not (fn:doc-available($key)) ) )
+  return map:put(
+      $m, 
+      $key,   
+      sem:tuple($x, $sem:P-RDF-TYPE , $c2, '')) 
+};
+
+
+
+(: owl2rl | scm-cls | class inference  TODO PARTIAL only first of four possible triples are generated :)
+declare function sem:inf-owl2rl-scm-cls()
+as xs:integer
+{
+  let $m := map:map()
+  let $query := sem:inf-owl2rl-scm-cls($m)
+  let $exec := sem:inf-tuple-insert($m)
+  return map:count($m)
+};
+
+declare private function sem:inf-owl2rl-scm-cls($m as map:map)
+as  empty-sequence()
+{
+  for  $c in sem:ev1(  $sem:QN-S, (sem:query-p( $sem:P-RDF-TYPE ), sem:query-o( $sem:O-OWL-CLASS)) ) 
+  let $key := sem:uri-for-tuple($c, $sem:P-RDF-SUBCLASS, $c, '')
+  where ( (map:count($m) lt 10000) and ( not (fn:doc-available($key)) ) )
+  return map:put(
+      $m, 
+      $key,   
+      sem:tuple($c, $sem:P-RDF-SUBCLASS, $c, '')) 
+};
+
+
+
+(: owl2rl | scm-sco   | subClassOf :)
+declare function sem:inf-owl2rl-scm-sco()
+as xs:integer
+{
+  let $m := map:map()
+  let $query := sem:inf-owl2rl-scm-sco($m)
+  let $exec := sem:inf-tuple-insert($m)
+  return map:count($m)
+};
+
+declare private function sem:inf-owl2rl-scm-sco($m as map:map)
+as  empty-sequence()
+{
+  for  $t_x_y in sem:evT( sem:query-p( $sem:P-RDF-SUBCLASS ) ) 
+      , $x in $t_x_y/s/text()
+      , $y in $t_x_y/o/text()
+  for  $z in sem:ev1( $sem:QN-O, (sem:query-s( $y ), sem:query-p( $sem:P-RDF-SUBCLASS ) )) 
+  let $key := sem:uri-for-tuple($x, $sem:P-RDF-SUBCLASS, $z, '')
+  where ( ($x != $y) and ($y != $z)  and (map:count($m) lt 10000) and ( not (fn:doc-available($key)) ) )
+  return map:put(
+      $m, 
+      $key,   
+      sem:tuple($x, $sem:P-RDF-SUBCLASS, $z, '')) 
+};
+
+
+
+(: owl2rl | scm-op | Property inference TODO PARTIAL only first of two possible triples are generated:)
+declare function sem:inf-owl2rl-scm-op()
+as xs:integer
+{
+  let $m := map:map()
+  let $query := sem:inf-owl2rl-scm-op($m)
+  let $exec := sem:inf-tuple-insert($m)
+  return map:count($m)
+};
+
+declare private function sem:inf-owl2rl-scm-op($m as map:map)
+as  empty-sequence()
+{
+  for  $p in sem:ev1(  $sem:QN-S, (sem:query-p( $sem:P-RDF-TYPE ), sem:query-o( $sem:O-OWL-OBJECT-PROPERTY)) ) 
+  let $key := sem:uri-for-tuple($p, $sem:P-RDF-SUBPROPERTY, $p, '')
+  where ( (map:count($m) lt 10000) and ( not (fn:doc-available($key)) ) )
+  return map:put(
+      $m, 
+      $key,   
+      sem:tuple($p, $sem:P-RDF-SUBPROPERTY, $p, '')) 
+};
+
+
+(: owl2rl | scm-dp | Property inference TODO PARTIAL only first of two possible triples are generated:)
+declare function sem:inf-owl2rl-scm-dp()
+as xs:integer
+{
+  let $m := map:map()
+  let $query := sem:inf-owl2rl-scm-dp($m)
+  let $exec := sem:inf-tuple-insert($m)
+  return map:count($m)
+};
+
+declare private function sem:inf-owl2rl-scm-dp($m as map:map)
+as  empty-sequence()
+{
+  for  $p in sem:ev1(  $sem:QN-S, (sem:query-p( $sem:P-RDF-TYPE ), sem:query-o( $sem:O-OWL-DATATYPE-PROPERTY)) ) 
+  let $key := sem:uri-for-tuple($p, $sem:P-RDF-SUBPROPERTY, $p, '')
+  where ( (map:count($m) lt 10000) and ( not (fn:doc-available($key)) ) )
+  return map:put(
+      $m, 
+      $key,   
+      sem:tuple($p, $sem:P-RDF-SUBPROPERTY, $p, '')) 
+};
+
+
+(: owl2rl | scm-spo   | subPropertyOf :)
+declare function sem:inf-owl2rl-scm-spo()
+as xs:integer
+{
+  let $m := map:map()
+  let $query := sem:inf-owl2rl-scm-spo($m)
+  let $exec := sem:inf-tuple-insert($m)
+  return map:count($m)
+};
+
+declare private function sem:inf-owl2rl-scm-spo($m as map:map)
+as  empty-sequence()
+{
+  for  $t_x_y in sem:evT( sem:query-p( $sem:P-RDF-SUBPROPERTY ) ) 
+      , $x in $t_x_y/s/text()
+      , $y in $t_x_y/o/text()
+  for  $z in sem:ev1( $sem:QN-O, (sem:query-s( $y ), sem:query-p( $sem:P-RDF-SUBPROPERTY ) )) 
+  let $key := sem:uri-for-tuple($x, $sem:P-RDF-SUBPROPERTY, $z, '')
+  where ( ($x != $y) and ($y != $z)  and (map:count($m) lt 10000) and ( not (fn:doc-available($key)) ) )
+  return map:put(
+      $m, 
+      $key,    
+      sem:tuple($x, $sem:P-RDF-SUBPROPERTY, $z, '')) 
+};
+

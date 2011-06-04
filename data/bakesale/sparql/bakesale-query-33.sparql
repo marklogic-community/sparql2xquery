@@ -1,4 +1,7 @@
-# bakesale-query-33: list student and manager pairs, each of which is connected by no more than three hops social relation
+# bakesale-query-33: list student and manager pairs, each connected by no more than three-hop social relation path
+#					 TEST: class taxonomy, property taxonomy, property inference
+#					 TEST: sparql UNION and FILTER
+#					 TEST: sameAs inference (i.e. owl:sameAs)
 
 PREFIX c: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>

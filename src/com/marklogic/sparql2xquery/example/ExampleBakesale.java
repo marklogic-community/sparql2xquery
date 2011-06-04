@@ -26,8 +26,8 @@ public class ExampleBakesale {
 	/*********************************************
 	 * config
 	 */
-    //String connectionUri = "xcc://admin:admin@localhost:8006/bakesale-full";
-	String connectionUri = "xcc://admin:admin@ec2-184-73-4-47.compute-1.amazonaws.com:8005/bakesale";
+    String connectionUri = "xcc://admin:admin@localhost:8006/bakesale-test";
+	//String connectionUri = "xcc://admin:admin@ec2-184-73-4-47.compute-1.amazonaws.com:8005/bakesale";
 		
     public static void main(String [] args){
     	new ExampleBakesale().run();
@@ -76,10 +76,21 @@ public class ExampleBakesale {
     		if (null!=m_map_query_sparql_result){
     			String szResults_sparql = m_map_query_sparql_result.get(szQuery).toString();    			
         		System.out.println(String.format("[sparql results: %d]", countResults(szResults_sparql)));
+        	        		
         		
     			String szResults_xquery = this.m_map_query_xquery_result.get(szQuery);
     			if (null!=szResults_xquery){
     				System.out.println(String.format("[xquery results: %d]", countResults(szResults_xquery)));
+/*
+            		System.out.println("-----------------");
+            		System.out.println(szQuerySparql);
+            		System.out.println("-----------------");
+            		System.out.println(szResults_sparql.replaceAll("</binding>\\s+<binding", "").replaceAll("http://lod-apps.googlecode.com/svn/trunk/data/bakesale/", ""));
+            		System.out.println("-----------------");
+            		System.out.println(szQueryXquery);
+            		System.out.println("-----------------");
+            		System.out.println(szResults_xquery.replaceAll("</binding>\\s+<binding", "").replaceAll("http://lod-apps.googlecode.com/svn/trunk/data/bakesale/", ""));
+*/
     			}
     		}
 

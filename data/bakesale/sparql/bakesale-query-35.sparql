@@ -1,0 +1,23 @@
+# bakesale-query-35:  list persons who sold chocolate cookie during certain event, 
+#                      and show the corresponding event, location (state), and product. 
+#					 TEST: class taxonomy, property taxonomy, property inference
+#					 TEST: transitive property inference (owl:TransitiveProperty) on location
+#					 TEST: OWL property restriction inference (e.g. owl:hasValue) 
+
+PREFIX c: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#>
+PREFIX p: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#>
+PREFIX i: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-ontology.ttl#>
+PREFIX bs-location: <http://lod-apps.googlecode.com/svn/trunk/data/bakesale/bs-location.ttl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT distinct ?seller ?event ?location ?product 
+WHERE {
+	?event a c:Bake_Sale_Event.
+	?event p:location ?location.
+	?location p:location ?state.
+	?state a c:State.
+	?event p:seller ?seller .
+	?event p:product ?product .
+	?product a ?product_type .
+	?product a c:Cookie .
+	?product p:ingredient  i:chocolatechip .
+}

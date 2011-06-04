@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import org.apache.log4j.Logger;
 
 
+import com.hp.hpl.jena.sparql.expr.E_LogicalAnd;
 import com.hp.hpl.jena.sparql.expr.Expr;
 import com.hp.hpl.jena.sparql.expr.ExprFunction;
 import com.hp.hpl.jena.sparql.expr.ExprFunctionOp;
@@ -194,8 +195,28 @@ public class S2XExprVisitor implements ExprVisitor{
 
 	@Override
 	public void visit(ExprFunction arg0) {
-		// TODO Auto-generated method stub
+		if (m_expr_and.isEmpty()){
+			m_expr_and.add(arg0);
+		}
+		if (debug){
+			log("---  ---   ---   ---");
+			log(arg0.getClass());
+			log(arg0);
+
+			log(arg0.getFunctionSymbol());
+		}
 		
+		boolean canDecompose = false;
+		if (arg0 instanceof E_LogicalAnd){
+			canDecompose = m_expr_and.remove(arg0);		
+		}
+		
+		for (Expr arg: arg0.getArgs()){
+			if (canDecompose){
+				this.m_expr_and.add(arg);
+			}
+			arg.visit(this);
+		}
 	}
 
 }
